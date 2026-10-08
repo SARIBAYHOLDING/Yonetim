@@ -10,6 +10,7 @@ import type { Product, Order, Customer, Supplier, OrderStatus, StoreStats, Store
 import { Sidebar } from './components/Sidebar';
 import type { ActiveTab } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { Dashboard } from './components/Dashboard';
 import { Products } from './components/Products';
 import { Orders } from './components/Orders';
@@ -41,25 +42,25 @@ const DEFAULT_STORE_SETTINGS: StoreSettings = {
 };
 
 export function App() {
-  // LocalStorage Persistence
+  // LocalStorage Persistence - Default to clean state if not present (demo data removed)
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem('hasbahce_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = localStorage.getItem('hasbahce_orders');
-    return saved ? JSON.parse(saved) : INITIAL_ORDERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [customers, setCustomers] = useState<Customer[]>(() => {
     const saved = localStorage.getItem('hasbahce_customers');
-    return saved ? JSON.parse(saved) : INITIAL_CUSTOMERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [suppliers, setSuppliers] = useState<Supplier[]>(() => {
     const saved = localStorage.getItem('hasbahce_suppliers');
-    return saved ? JSON.parse(saved) : INITIAL_SUPPLIERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
@@ -72,6 +73,9 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Mobile Menu Drawer State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Modals
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -313,19 +317,27 @@ export function App() {
     setIsWhatsAppOpen(true);
   };
 
-  // Reset Demo Data
-  const handleResetDemoData = () => {
+  // Load Demo Data
+  const handleLoadDemoData = () => {
     setProducts(INITIAL_PRODUCTS);
     setOrders(INITIAL_ORDERS);
     setCustomers(INITIAL_CUSTOMERS);
     setSuppliers(INITIAL_SUPPLIERS);
     setStoreSettings(DEFAULT_STORE_SETTINGS);
+    showToast('Örnek demo verileri yüklendi.');
+  };
+
+  // Clear All Data
+  const handleClearAllData = () => {
+    setProducts([]);
+    setOrders([]);
+    setCustomers([]);
+    setSuppliers([]);
     localStorage.removeItem('hasbahce_products');
     localStorage.removeItem('hasbahce_orders');
     localStorage.removeItem('hasbahce_customers');
     localStorage.removeItem('hasbahce_suppliers');
-    localStorage.removeItem('hasbahce_store_settings');
-    showToast('Demo verileri sıfırlandı.');
+    showToast('Tüm veriler temizlendi.');
   };
 
   const handleImportData = (jsonStr: string) => {
@@ -358,25 +370,27 @@ export function App() {
   };
 
   return (
-    <div className={`min-h-screen font-sans bg-slate-950 text-slate-100 flex ${darkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen font-sans bg-slate-950 text-slate-100 flex flex-col lg:flex-row ${darkMode ? 'dark' : ''}`}>
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-2.5 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-16 lg:bottom-6 right-4 lg:right-6 z-50 bg-emerald-600 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-2.5 animate-in fade-in slide-in-from-bottom-5">
           <CheckCircle2 className="w-4 h-4 text-emerald-200 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation (Desktop Fixed & Mobile Slide-Over Drawer) */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         lowStockCount={lowStockCount}
         newOrdersCount={newOrdersCount}
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Workspace */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 pb-16 lg:pb-0">
         <Navbar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -386,9 +400,10 @@ export function App() {
           lowStockCount={lowStockCount}
           darkMode={darkMode}
           setDarkMode={setDarkMode}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
 
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-3 sm:p-6 overflow-y-auto">
           {activeTab === 'dashboard' && (
             <Dashboard
               products={products}
@@ -454,12 +469,12 @@ export function App() {
           )}
 
           {activeTab === 'whatsapp' && (
-            <div className="max-w-2xl mx-auto pt-6">
-              <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl text-center">
-                <div className="w-16 h-16 rounded-2xl bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-4 border border-green-500/30">
-                  <span className="text-3xl">💬</span>
+            <div className="max-w-2xl mx-auto pt-4 sm:pt-6">
+              <div className="bg-slate-900 border border-slate-800 p-5 sm:p-8 rounded-2xl text-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-4 border border-green-500/30">
+                  <span className="text-2xl sm:text-3xl">💬</span>
                 </div>
-                <h2 className="text-xl font-extrabold text-slate-100">WhatsApp Müşteri İletişim Entegrasyonu</h2>
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-100">WhatsApp Müşteri İletişim Entegrasyonu</h2>
                 <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto">
                   Hasbahçe Yöresel müşterilerine kargo takip bildirimleri, sipariş güncellemeleri ve özel kampanya duyurularını tek tıkla iletin.
                 </p>
@@ -481,12 +496,21 @@ export function App() {
               suppliers={suppliers}
               storeSettings={storeSettings}
               onSaveStoreSettings={handleSaveStoreSettings}
-              onResetDemoData={handleResetDemoData}
+              onLoadDemoData={handleLoadDemoData}
+              onClearAllData={handleClearAllData}
               onImportData={handleImportData}
             />
           )}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Hidden on Desktop) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        lowStockCount={lowStockCount}
+        newOrdersCount={newOrdersCount}
+      />
 
       {/* Modals */}
       <ProductModal

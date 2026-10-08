@@ -8,7 +8,8 @@ import {
   FileText, 
   MessageSquare, 
   Settings, 
-  Award
+  Award,
+  X
 } from 'lucide-react';
 
 export type ActiveTab = 'dashboard' | 'products' | 'orders' | 'customers' | 'suppliers' | 'reports' | 'whatsapp' | 'settings';
@@ -18,13 +19,17 @@ interface SidebarProps {
   setActiveTab: (tab: ActiveTab) => void;
   lowStockCount: number;
   newOrdersCount: number;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   activeTab, 
   setActiveTab,
   lowStockCount,
-  newOrdersCount
+  newOrdersCount,
+  isMobileOpen = false,
+  onCloseMobile
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Genel Bakış & Analiz', icon: LayoutDashboard },
@@ -37,23 +42,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'settings', label: 'Sistem & Git Ayarları', icon: Settings },
   ];
 
-  return (
-    <aside className="w-64 bg-slate-900/90 border-r border-slate-800 flex flex-col justify-between shrink-0 h-screen sticky top-0 backdrop-blur-xl z-20">
+  const sidebarContent = (
+    <div className="flex flex-col justify-between h-full">
       <div>
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800/80 flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-900/40 text-white font-black text-xl">
-            🌿
-          </div>
-          <div>
-            <div className="flex items-center space-x-1.5">
-              <span className="font-extrabold text-slate-100 tracking-tight text-base">HASBAHÇE</span>
-              <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-1.5 py-0.5 rounded border border-amber-500/30">
-                YÖRESEL
-              </span>
+        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-900/40 text-white font-black text-xl">
+              🌿
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Yönetim Paneli v2.5</p>
+            <div>
+              <div className="flex items-center space-x-1.5">
+                <span className="font-extrabold text-slate-100 tracking-tight text-base">HASBAHÇE</span>
+                <span className="text-xs bg-amber-500/20 text-amber-300 font-semibold px-1.5 py-0.5 rounded border border-amber-500/30">
+                  YÖRESEL
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">Yönetim Paneli v2.5</p>
+            </div>
           </div>
+
+          {/* Close button for mobile drawer */}
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Quality Certification Tag */}
@@ -70,7 +87,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id as ActiveTab)}
+                onClick={() => {
+                  setActiveTab(item.id as ActiveTab);
+                  if (onCloseMobile) onCloseMobile();
+                }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 group ${
                   isActive
                     ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-900/30 font-semibold'
@@ -103,6 +123,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sticky Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-slate-900/90 border-r border-slate-800 flex-col shrink-0 h-screen sticky top-0 backdrop-blur-xl z-20">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Slide-Over Drawer Overlay */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div 
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+            onClick={onCloseMobile}
+          ></div>
+
+          <aside className="relative w-72 max-w-[85vw] bg-slate-900 border-r border-slate-800 h-full flex flex-col z-50 shadow-2xl animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };

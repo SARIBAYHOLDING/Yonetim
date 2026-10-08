@@ -100,21 +100,37 @@ export const Orders: React.FC<OrdersProps> = ({
       </div>
 
       {/* Orders Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-slate-800">
-              <tr>
-                <th className="py-3.5 px-4">SİPARİŞ KODU & TARİH</th>
-                <th className="py-3.5 px-4">MÜŞTERİ BİLGİSİ</th>
-                <th className="py-3.5 px-4">İÇERİK</th>
-                <th className="py-3.5 px-4">TUTAR & ÖDEME</th>
-                <th className="py-3.5 px-4">KARGO / TAKİP NO</th>
-                <th className="py-3.5 px-4 text-center">DURUM</th>
-                <th className="py-3.5 px-4 text-right">İŞLEMLER</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/80">
+      {filteredOrders.length === 0 ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center my-4">
+          <ShoppingCart className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-slate-200">Sipariş Bulunamadı</h3>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+            Arama veya filtre kriterlerinize uyan sipariş yok ya da henüz sistemde kayıtlı sipariş bulunmuyor.
+          </p>
+          <button
+            onClick={onAddOrder}
+            className="mt-4 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950 inline-flex items-center space-x-1.5 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Yeni Sipariş Ekle</span>
+          </button>
+        </div>
+      ) : (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider font-semibold border-b border-slate-800">
+                <tr>
+                  <th className="py-3.5 px-4">SİPARİŞ KODU & TARİH</th>
+                  <th className="py-3.5 px-4">MÜŞTERİ BİLGİSİ</th>
+                  <th className="py-3.5 px-4">İÇERİK</th>
+                  <th className="py-3.5 px-4">TUTAR & ÖDEME</th>
+                  <th className="py-3.5 px-4">KARGO / TAKİP NO</th>
+                  <th className="py-3.5 px-4 text-center">DURUM</th>
+                  <th className="py-3.5 px-4 text-right">İŞLEMLER</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
               {filteredOrders.map((order) => {
                 return (
                   <tr key={order.id} className="hover:bg-slate-800/50 transition-colors">
@@ -231,6 +247,7 @@ export const Orders: React.FC<OrdersProps> = ({
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 };

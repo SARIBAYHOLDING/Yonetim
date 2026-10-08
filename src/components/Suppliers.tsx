@@ -39,8 +39,24 @@ export const Suppliers: React.FC<SuppliersProps> = ({
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {suppliers.map((s) => (
+      {suppliers.length === 0 ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center my-4">
+          <Truck className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-slate-200">Tedarikçi Kaydı Bulunamadı</h3>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+            Henüz sisteme kayıtlı yöresel üretici veya kooperatif bulunmuyor.
+          </p>
+          <button
+            onClick={onAddSupplier}
+            className="mt-4 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-amber-950 inline-flex items-center space-x-1.5 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Yeni Tedarikçi / Kooperatif Ekle</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {suppliers.map((s) => (
           <div key={s.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between">
             <div>
               <div className="flex items-start justify-between">
@@ -107,6 +123,7 @@ export const Suppliers: React.FC<SuppliersProps> = ({
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };

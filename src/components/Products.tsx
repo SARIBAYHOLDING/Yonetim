@@ -159,7 +159,22 @@ export const Products: React.FC<ProductsProps> = ({
       </div>
 
       {/* Products Display (Table or Grid) */}
-      {viewMode === 'table' ? (
+      {filteredProducts.length === 0 ? (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center my-4">
+          <Package className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-slate-200">Kayıtlı Ürün Bulunamadı</h3>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+            Arama veya filtre kriterlerinize uygun ürün bulunamadı ya da henüz ürün kataloğunuz boş.
+          </p>
+          <button
+            onClick={onAddProduct}
+            className="mt-4 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950 inline-flex items-center space-x-1.5 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Yeni Yöresel Ürün Ekle</span>
+          </button>
+        </div>
+      ) : viewMode === 'table' ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">

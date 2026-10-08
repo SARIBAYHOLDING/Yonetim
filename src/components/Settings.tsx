@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Database, RefreshCw, Download, Upload, CheckCircle2, GitBranch, Building, Save } from 'lucide-react';
+import { Settings as SettingsIcon, Database, RefreshCw, Download, Upload, CheckCircle2, GitBranch, Building, Save, Trash2, PlusCircle } from 'lucide-react';
 import type { Product, Order, Customer, Supplier, StoreSettings } from '../types';
 
 interface SettingsProps {
@@ -9,7 +9,8 @@ interface SettingsProps {
   suppliers: Supplier[];
   storeSettings: StoreSettings;
   onSaveStoreSettings: (settings: StoreSettings) => void;
-  onResetDemoData: () => void;
+  onLoadDemoData: () => void;
+  onClearAllData: () => void;
   onImportData: (json: string) => void;
 }
 
@@ -20,7 +21,8 @@ export const Settings: React.FC<SettingsProps> = ({
   suppliers,
   storeSettings,
   onSaveStoreSettings,
-  onResetDemoData,
+  onLoadDemoData,
+  onClearAllData,
   onImportData
 }) => {
   const [settingsForm, setSettingsForm] = useState<StoreSettings>(storeSettings);
@@ -242,7 +244,7 @@ export const Settings: React.FC<SettingsProps> = ({
         </p>
       </div>
 
-      {/* Data Backup & Restore */}
+      {/* Data Backup & Restore & Demo Control */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* JSON Export/Import */}
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
@@ -273,31 +275,46 @@ export const Settings: React.FC<SettingsProps> = ({
           </div>
         </div>
 
-        {/* Reset Demo Data */}
+        {/* Demo Data Management */}
         <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
           <div>
             <div className="flex items-center space-x-2 mb-3">
               <RefreshCw className="w-5 h-5 text-amber-400" />
-              <h3 className="font-bold text-slate-100 text-base">Demo Verilerini Sıfırla</h3>
+              <h3 className="font-bold text-slate-100 text-base">Demo Veri Yönetimi</h3>
             </div>
             <p className="text-xs text-slate-400 mb-4">
-              Hasbahçe Yöresel orijinal örnek ürün ve sipariş veri setini fabrika ayarlarına geri getirin.
+              Sistemi test etmek için örnek demo verilerini yükleyebilir veya canlı kullanıma geçmek için tüm verileri temizleyebilirsiniz.
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              if (confirm('Hasbahçe varsayılan demo verilerine sıfırlamak istediğinize emin misiniz?')) {
-                onResetDemoData();
-              }
-            }}
-            className="w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center space-x-2 border border-amber-500/30 transition-all"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Orijinal Örnek Verilere Dön</span>
-          </button>
+          <div className="space-y-2.5">
+            <button
+              onClick={() => {
+                if (confirm('Örnek Hasbahçe demo verilerini yüklemek istediğinize emin misiniz?')) {
+                  onLoadDemoData();
+                }
+              }}
+              className="w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center space-x-2 border border-amber-500/30 transition-all"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Örnek Demo Verilerini Yükle</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (confirm('TÜM ÜRÜN, SİPARİŞ VE MÜŞTERİ VERİLERİNİ silip sistemi sıfırlamak istediğinize emin misiniz?')) {
+                  onClearAllData();
+                }
+              }}
+              className="w-full py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 font-bold text-xs rounded-xl flex items-center justify-center space-x-2 border border-red-500/30 transition-all"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Tüm Verileri Temizle (Boş Liste)</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
