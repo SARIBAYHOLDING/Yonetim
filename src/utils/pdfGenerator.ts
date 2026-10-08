@@ -1,7 +1,23 @@
-import type { Order, Product, StoreStats } from '../types';
+import type { Order, Product, StoreStats, StoreSettings } from '../types';
 import { formatCurrency, formatDate } from './formatters';
 
-export function generateOrderInvoicePDF(order: Order): void {
+const DEFAULT_SETTINGS: StoreSettings = {
+  storeName: 'HASBAHÇE YÖRESEL GIDA VE ORGANİK ÜRÜNLER LTD. ŞTİ.',
+  storePhone: '0850 308 45 53',
+  storeEmail: 'siparis@hasbahceyoresel.com',
+  storeAddress: 'Atatürk Cad. Rize Karadeniz Bölgesi / Türkiye',
+  taxOffice: 'Rize Vergi Dairesi',
+  taxNumber: '0458921049281',
+  defaultShippingFee: 50,
+  freeShippingThreshold: 500,
+  defaultVatRate: 10,
+  bankIban: 'TR92 0006 2000 0000 1234 5678 90',
+  bankName: 'Ziraat Bankası Rize Şubesi',
+  bankAccountHolder: 'Hasbahçe Yöresel Gıda A.Ş.'
+};
+
+export function generateOrderInvoicePDF(order: Order, customSettings?: StoreSettings): void {
+  const settings = customSettings || DEFAULT_SETTINGS;
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
 
@@ -10,7 +26,7 @@ export function generateOrderInvoicePDF(order: Order): void {
     <html lang="tr">
     <head>
       <meta charset="UTF-8">
-      <title>Hasbahçe Yöresel - Fatura / İrsaliye #${order.orderNumber}</title>
+      <title>${settings.storeName} - Fatura / İrsaliye #${order.orderNumber}</title>
       <style>
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -28,14 +44,14 @@ export function generateOrderInvoicePDF(order: Order): void {
           margin-bottom: 30px;
         }
         .brand-title {
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 800;
           color: #047857;
           margin: 0;
           letter-spacing: -0.5px;
         }
         .brand-sub {
-          font-size: 13px;
+          font-size: 12px;
           color: #64748b;
           margin-top: 4px;
         }
@@ -66,14 +82,14 @@ export function generateOrderInvoicePDF(order: Order): void {
         }
         .card h3 {
           margin: 0 0 10px 0;
-          font-size: 14px;
+          font-size: 13px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
           color: #047857;
         }
         .card p {
           margin: 4px 0;
-          font-size: 13px;
+          font-size: 12px;
           color: #334155;
         }
         table {
@@ -126,7 +142,7 @@ export function generateOrderInvoicePDF(order: Order): void {
         .stamp-box {
           border: 2px dashed #047857;
           color: #047857;
-          width: 160px;
+          width: 180px;
           padding: 10px;
           text-align: center;
           font-weight: bold;
@@ -142,8 +158,8 @@ export function generateOrderInvoicePDF(order: Order): void {
     <body>
       <div class="header">
         <div>
-          <h1 class="brand-title">HASBAHÇE YÖRESEL</h1>
-          <div class="brand-sub">Doğal & Geleneksel Yöresel Lezzetler Yönetim Merkezi</div>
+          <h1 class="brand-title">${settings.storeName}</h1>
+          <div class="brand-sub">${settings.storeAddress} | Tel: ${settings.storePhone}</div>
         </div>
         <div class="doc-title">
           <h2>RESMİ İRSALİYELİ FATURA</h2>
@@ -200,7 +216,7 @@ export function generateOrderInvoicePDF(order: Order): void {
           <td class="text-right">${formatCurrency(order.subtotal)}</td>
         </tr>
         <tr>
-          <td>KDV Tahmini:</td>
+          <td>KDV (%${settings.defaultVatRate}):</td>
           <td class="text-right">${formatCurrency(order.taxAmount)}</td>
         </tr>
         <tr>
@@ -220,13 +236,14 @@ export function generateOrderInvoicePDF(order: Order): void {
           ✓ KONTROL EDİLDİ
         </div>
         <div style="text-align: right; font-size: 12px; color: #64748b;">
+          ${settings.taxOffice} - V.No: ${settings.taxNumber}<br>
           Teslim Eden: Hasbahçe Depo Sorumlusu<br>
           Teslim Alan İmzası: ____________________
         </div>
       </div>
 
       <div class="footer">
-        Hasbahçe Yöresel Gıda ve Organik Ürünler Ltd. Şti. | Mersis: 0458921049281 | www.hasbahceeyoresel.com<br>
+        ${settings.storeName} | V.No: ${settings.taxNumber} | ${settings.storeEmail}<br>
         Bu belge elektronik olarak Hasbahçe Yönetim Paneli üzerinden oluşturulmuştur.
       </div>
 

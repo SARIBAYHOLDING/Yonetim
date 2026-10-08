@@ -1,25 +1,41 @@
 import React from 'react';
-import { Truck, Star, Phone, Mail, MapPin, CheckCircle } from 'lucide-react';
+import { Truck, Star, Phone, Mail, MapPin, CheckCircle, Plus, Edit3, Trash2 } from 'lucide-react';
 import type { Supplier } from '../types';
 
 interface SuppliersProps {
   suppliers: Supplier[];
+  onAddSupplier: () => void;
+  onEditSupplier: (supplier: Supplier) => void;
+  onDeleteSupplier: (id: string) => void;
 }
 
-export const Suppliers: React.FC<SuppliersProps> = ({ suppliers }) => {
+export const Suppliers: React.FC<SuppliersProps> = ({
+  suppliers,
+  onAddSupplier,
+  onEditSupplier,
+  onDeleteSupplier
+}) => {
   return (
     <div className="space-y-6 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
         <div>
           <div className="flex items-center space-x-2">
-            <Truck className="w-5 h-5 text-emerald-400" />
+            <Truck className="w-5 h-5 text-amber-400" />
             <h1 className="text-xl font-extrabold text-slate-100">Yöresel Üreticiler & Kooperatifler</h1>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Anadolu'nun dört bir yanından yerel üreticiler, organik sertifika sertifikasyonu ve tedarik ağı.
+            Anadolu'nun dört bir yanından yerel üreticiler, organik sertifika yönetimi ve tedarik ağı.
           </p>
         </div>
+
+        <button
+          onClick={onAddSupplier}
+          className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-amber-950 transition-all self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Yeni Tedarikçi / Kooperatif Ekle</span>
+        </button>
       </div>
 
       {/* Grid */}
@@ -29,13 +45,32 @@ export const Suppliers: React.FC<SuppliersProps> = ({ suppliers }) => {
             <div>
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">{s.region}</span>
+                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">{s.region}</span>
                   <h3 className="font-extrabold text-slate-100 text-base mt-0.5">{s.name}</h3>
                   <p className="text-xs text-slate-400 mt-0.5">Yetkili: {s.contactPerson}</p>
                 </div>
-                <div className="flex items-center space-x-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-1 rounded-lg text-xs font-bold">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <span>{s.rating}</span>
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-1 rounded-lg text-xs font-bold">
+                    <Star className="w-3.5 h-3.5 fill-amber-400" />
+                    <span>{s.rating}</span>
+                  </div>
+
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => onEditSupplier(s)}
+                      className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                      title="Tedarikçiyi Düzenle"
+                    >
+                      <Edit3 className="w-4 h-4 text-amber-400" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteSupplier(s.id)}
+                      className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors"
+                      title="Tedarikçiyi Sil"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-400" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -46,7 +81,7 @@ export const Suppliers: React.FC<SuppliersProps> = ({ suppliers }) => {
                     <CheckCircle className="w-3 h-3 mr-1 text-emerald-400" /> Organik Sertifikalı
                   </span>
                 )}
-                {s.suppliedCategories.map((cat, i) => (
+                {(s.suppliedCategories || []).map((cat, i) => (
                   <span key={i} className="text-[10px] font-semibold bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">
                     {cat}
                   </span>

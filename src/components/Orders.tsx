@@ -3,7 +3,10 @@ import {
   ShoppingCart, 
   FileText, 
   MessageSquare, 
-  Eye
+  Eye,
+  Plus,
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import type { Order, OrderStatus } from '../types';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -11,6 +14,9 @@ import { generateOrderInvoicePDF } from '../utils/pdfGenerator';
 
 interface OrdersProps {
   orders: Order[];
+  onAddOrder: () => void;
+  onEditOrder: (order: Order) => void;
+  onDeleteOrder: (id: string) => void;
   onUpdateOrderStatus: (orderId: string, status: OrderStatus, cargoCompany?: any, trackingNo?: string) => void;
   onViewOrderDetails: (order: Order) => void;
   onSendWhatsApp: (phone: string, text: string) => void;
@@ -19,6 +25,9 @@ interface OrdersProps {
 
 export const Orders: React.FC<OrdersProps> = ({
   orders,
+  onAddOrder,
+  onEditOrder,
+  onDeleteOrder,
   onUpdateOrderStatus,
   onViewOrderDetails,
   onSendWhatsApp,
@@ -50,14 +59,18 @@ export const Orders: React.FC<OrdersProps> = ({
             <h1 className="text-xl font-extrabold text-slate-100">Sipariş & Kargo Yönetimi</h1>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Gelen siparişler, kargo takip barkodları ve WhatsApp bildirimleri.
+            Gelen siparişler, kargo takip barkodları, düzenleme ve WhatsApp bildirimleri.
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
-          <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
-            Toplam: <strong className="text-emerald-400">{orders.length} Sipariş</strong>
-          </span>
+          <button
+            onClick={onAddOrder}
+            className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-950 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Yeni Sipariş Ekle</span>
+          </button>
         </div>
       </div>
 
@@ -98,7 +111,7 @@ export const Orders: React.FC<OrdersProps> = ({
                 <th className="py-3.5 px-4">TUTAR & ÖDEME</th>
                 <th className="py-3.5 px-4">KARGO / TAKİP NO</th>
                 <th className="py-3.5 px-4 text-center">DURUM</th>
-                <th className="py-3.5 px-4 text-right">HIZLI İŞLEMLER</th>
+                <th className="py-3.5 px-4 text-right">İŞLEMLER</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
@@ -177,6 +190,14 @@ export const Orders: React.FC<OrdersProps> = ({
                       </button>
 
                       <button
+                        onClick={() => onEditOrder(order)}
+                        className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                        title="Siparişi Düzenle"
+                      >
+                        <Edit3 className="w-4 h-4 text-blue-400" />
+                      </button>
+
+                      <button
                         onClick={() => generateOrderInvoicePDF(order)}
                         className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
                         title="Fatura / PDF Yazdır"
@@ -193,6 +214,14 @@ export const Orders: React.FC<OrdersProps> = ({
                         title="WhatsApp İle Bildirim Gönder"
                       >
                         <MessageSquare className="w-4 h-4 text-green-400" />
+                      </button>
+
+                      <button
+                        onClick={() => onDeleteOrder(order.id)}
+                        className="p-1.5 rounded-lg text-slate-300 hover:text-red-400 hover:bg-slate-800 transition-colors"
+                        title="Siparişi Sil"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
                       </button>
                     </td>
                   </tr>

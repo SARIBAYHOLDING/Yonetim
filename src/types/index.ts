@@ -109,3 +109,19 @@ export interface StoreStats {
   lowStockCount: number;
   geographicalCertifiedPercent: number;
 }
+
+export interface StoreSettings {
+  storeName: string;
+  storePhone: string;
+  storeEmail: string;
+  storeAddress: string;
+  taxOffice: string;
+  taxNumber: string;
+  defaultShippingFee: number;
+  freeShippingThreshold: number;
+  defaultVatRate: number;
+  bankIban: string;
+  bankName: string;
+  bankAccountHolder: string;
+}
+

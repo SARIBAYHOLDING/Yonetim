@@ -5,7 +5,7 @@ import {
   INITIAL_CUSTOMERS, 
   INITIAL_SUPPLIERS 
 } from './data/mockData';
-import type { Product, Order, Customer, Supplier, OrderStatus, StoreStats } from './types';
+import type { Product, Order, Customer, Supplier, OrderStatus, StoreStats, StoreSettings } from './types';
 
 import { Sidebar } from './components/Sidebar';
 import type { ActiveTab } from './components/Sidebar';
@@ -18,9 +18,27 @@ import { Suppliers } from './components/Suppliers';
 import { Reports } from './components/Reports';
 import { Settings } from './components/Settings';
 import { ProductModal } from './components/ProductModal';
+import { CustomerModal } from './components/CustomerModal';
+import { SupplierModal } from './components/SupplierModal';
+import { OrderModal } from './components/OrderModal';
 import { OrderDetailModal } from './components/OrderDetailModal';
 import { WhatsAppWidget } from './components/WhatsAppWidget';
 import { CheckCircle2 } from 'lucide-react';
+
+const DEFAULT_STORE_SETTINGS: StoreSettings = {
+  storeName: 'Hasbahçe Yöresel Gıda ve Organik Ürünler Ltd. Şti.',
+  storePhone: '0850 308 45 53',
+  storeEmail: 'siparis@hasbahceyoresel.com',
+  storeAddress: 'Atatürk Cad. Rize Karadeniz Bölgesi / Türkiye',
+  taxOffice: 'Rize Vergi Dairesi',
+  taxNumber: '0458921049281',
+  defaultShippingFee: 50,
+  freeShippingThreshold: 500,
+  defaultVatRate: 10,
+  bankIban: 'TR92 0006 2000 0000 1234 5678 90',
+  bankName: 'Ziraat Bankası Rize Şubesi',
+  bankAccountHolder: 'Hasbahçe Yöresel Gıda A.Ş.'
+};
 
 export function App() {
   // LocalStorage Persistence
@@ -44,6 +62,11 @@ export function App() {
     return saved ? JSON.parse(saved) : INITIAL_SUPPLIERS;
   });
 
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+    const saved = localStorage.getItem('hasbahce_store_settings');
+    return saved ? JSON.parse(saved) : DEFAULT_STORE_SETTINGS;
+  });
+
   // UI States
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +76,15 @@ export function App() {
   // Modals
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -77,6 +109,10 @@ export function App() {
     localStorage.setItem('hasbahce_suppliers', JSON.stringify(suppliers));
   }, [suppliers]);
 
+  useEffect(() => {
+    localStorage.setItem('hasbahce_store_settings', JSON.stringify(storeSettings));
+  }, [storeSettings]);
+
   // Toast Helper
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -86,11 +122,9 @@ export function App() {
   // Product CRUD
   const handleSaveProduct = (productData: Partial<Product>) => {
     if (editingProduct) {
-      // Edit
       setProducts(prev => prev.map(p => p.id === editingProduct.id ? { ...p, ...productData } as Product : p));
       showToast(`"${productData.name}" başarıyla güncellendi.`);
     } else {
-      // Create
       const newProduct: Product = {
         id: `prod-${Date.now()}`,
         sku: productData.sku || `HB-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -136,7 +170,121 @@ export function App() {
     showToast(`Stok seviyesi güncellendi.`);
   };
 
-  // Order Status Update
+  // Customer CRUD
+  const handleSaveCustomer = (customerData: Partial<Customer>) => {
+    if (editingCustomer) {
+      setCustomers(prev => prev.map(c => c.id === editingCustomer.id ? { ...c, ...customerData } as Customer : c));
+      showToast(`Müşteri "${customerData.name}" güncellendi.`);
+    } else {
+      const newCustomer: Customer = {
+        id: `cust-${Date.now()}`,
+        name: customerData.name || 'Yeni Müşteri',
+        phone: customerData.phone || '',
+        email: customerData.email || '',
+        city: customerData.city || 'İstanbul',
+        address: customerData.address || '',
+        totalOrders: 0,
+        totalSpent: 0,
+        isVip: customerData.isVip || false,
+        lastOrderDate: new Date().toISOString().slice(0, 10)
+      };
+      setCustomers(prev => [newCustomer, ...prev]);
+      showToast(`Müşteri "${newCustomer.name}" kaydoldu.`);
+    }
+    setEditingCustomer(null);
+  };
+
+  const handleDeleteCustomer = (id: string) => {
+    const cust = customers.find(c => c.id === id);
+    if (confirm(`"${cust?.name}" adlı müşteriyi silmek istediğinize emin misiniz?`)) {
+      setCustomers(prev => prev.filter(c => c.id !== id));
+      showToast(`Müşteri kaydı silindi.`);
+    }
+  };
+
+  const handleToggleVip = (id: string) => {
+    setCustomers(prev => prev.map(c => {
+      if (c.id === id) {
+        const updatedVip = !c.isVip;
+        showToast(`${c.name} VIP statüsü ${updatedVip ? 'aktifleştirildi' : 'kaldırıldı'}.`);
+        return { ...c, isVip: updatedVip };
+      }
+      return c;
+    }));
+  };
+
+  // Supplier CRUD
+  const handleSaveSupplier = (supplierData: Partial<Supplier>) => {
+    if (editingSupplier) {
+      setSuppliers(prev => prev.map(s => s.id === editingSupplier.id ? { ...s, ...supplierData } as Supplier : s));
+      showToast(`Tedarikçi "${supplierData.name}" güncellendi.`);
+    } else {
+      const newSupplier: Supplier = {
+        id: `sup-${Date.now()}`,
+        name: supplierData.name || 'Yeni Tedarikçi',
+        contactPerson: supplierData.contactPerson || 'Yetkili',
+        phone: supplierData.phone || '',
+        email: supplierData.email || '',
+        region: supplierData.region || 'Rize / Karadeniz',
+        city: supplierData.city || 'Rize',
+        suppliedCategories: supplierData.suppliedCategories || ['Bal & Arı Ürünleri'],
+        rating: supplierData.rating || 5.0,
+        isCertifiedOrganic: supplierData.isCertifiedOrganic ?? true
+      };
+      setSuppliers(prev => [newSupplier, ...prev]);
+      showToast(`Yeni tedarikçi "${newSupplier.name}" eklendi.`);
+    }
+    setEditingSupplier(null);
+  };
+
+  const handleDeleteSupplier = (id: string) => {
+    const sup = suppliers.find(s => s.id === id);
+    if (confirm(`"${sup?.name}" tedarikçisini silmek istediğinize emin misiniz?`)) {
+      setSuppliers(prev => prev.filter(s => s.id !== id));
+      showToast(`Tedarikçi silindi.`);
+    }
+  };
+
+  // Order CRUD
+  const handleSaveOrder = (orderData: Partial<Order>) => {
+    if (editingOrder) {
+      setOrders(prev => prev.map(o => o.id === editingOrder.id ? { ...o, ...orderData } as Order : o));
+      showToast(`Sipariş #${orderData.orderNumber} güncellendi.`);
+    } else {
+      const newOrder: Order = {
+        id: `ord-${Date.now()}`,
+        orderNumber: orderData.orderNumber || `HB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        customerName: orderData.customerName || 'Müşteri',
+        customerPhone: orderData.customerPhone || '',
+        customerEmail: orderData.customerEmail || '',
+        deliveryAddress: orderData.deliveryAddress || '',
+        city: orderData.city || 'İstanbul',
+        items: orderData.items || [],
+        subtotal: orderData.subtotal || 0,
+        shippingFee: orderData.shippingFee || 0,
+        taxAmount: orderData.taxAmount || 0,
+        totalAmount: orderData.totalAmount || 0,
+        status: orderData.status || 'Yeni',
+        cargoCompany: orderData.cargoCompany || 'Yurtiçi Kargo',
+        trackingNumber: orderData.trackingNumber || '',
+        paymentMethod: orderData.paymentMethod || 'Kredi Kartı',
+        notes: orderData.notes || '',
+        createdAt: new Date().toISOString().slice(0, 10)
+      };
+      setOrders(prev => [newOrder, ...prev]);
+      showToast(`Yeni sipariş #${newOrder.orderNumber} oluşturuldu.`);
+    }
+    setEditingOrder(null);
+  };
+
+  const handleDeleteOrder = (id: string) => {
+    const ord = orders.find(o => o.id === id);
+    if (confirm(`Sipariş #${ord?.orderNumber} kaydını silmek istediğinize emin misiniz?`)) {
+      setOrders(prev => prev.filter(o => o.id !== id));
+      showToast(`Sipariş sistemden silindi.`);
+    }
+  };
+
   const handleUpdateOrderStatus = (orderId: string, status: OrderStatus, cargoCompany?: any, trackingNo?: string) => {
     setOrders(prev => prev.map(o => {
       if (o.id === orderId) {
@@ -152,6 +300,12 @@ export function App() {
     showToast(`Sipariş durumu "${status}" olarak güncellendi.`);
   };
 
+  // Store Settings
+  const handleSaveStoreSettings = (newSettings: StoreSettings) => {
+    setStoreSettings(newSettings);
+    showToast('Mağaza profil ve sistem ayarları başarıyla kaydedildi.');
+  };
+
   // WhatsApp Launcher Helper
   const handleOpenWhatsApp = (phone?: string, text?: string) => {
     if (phone) setWhatsAppPhone(phone);
@@ -165,10 +319,12 @@ export function App() {
     setOrders(INITIAL_ORDERS);
     setCustomers(INITIAL_CUSTOMERS);
     setSuppliers(INITIAL_SUPPLIERS);
+    setStoreSettings(DEFAULT_STORE_SETTINGS);
     localStorage.removeItem('hasbahce_products');
     localStorage.removeItem('hasbahce_orders');
     localStorage.removeItem('hasbahce_customers');
     localStorage.removeItem('hasbahce_suppliers');
+    localStorage.removeItem('hasbahce_store_settings');
     showToast('Demo verileri sıfırlandı.');
   };
 
@@ -179,6 +335,7 @@ export function App() {
       if (parsed.orders) setOrders(parsed.orders);
       if (parsed.customers) setCustomers(parsed.customers);
       if (parsed.suppliers) setSuppliers(parsed.suppliers);
+      if (parsed.storeSettings) setStoreSettings(parsed.storeSettings);
       showToast('Yedek verileri başarıyla yüklendi.');
     } catch (e) {
       alert('Geçersiz JSON formatı!');
@@ -257,6 +414,9 @@ export function App() {
           {activeTab === 'orders' && (
             <Orders
               orders={orders}
+              onAddOrder={() => { setEditingOrder(null); setIsOrderModalOpen(true); }}
+              onEditOrder={(order) => { setEditingOrder(order); setIsOrderModalOpen(true); }}
+              onDeleteOrder={handleDeleteOrder}
               onUpdateOrderStatus={handleUpdateOrderStatus}
               onViewOrderDetails={(order) => setSelectedOrder(order)}
               onSendWhatsApp={handleOpenWhatsApp}
@@ -267,13 +427,22 @@ export function App() {
           {activeTab === 'customers' && (
             <Customers
               customers={customers}
+              onAddCustomer={() => { setEditingCustomer(null); setIsCustomerModalOpen(true); }}
+              onEditCustomer={(cust) => { setEditingCustomer(cust); setIsCustomerModalOpen(true); }}
+              onDeleteCustomer={handleDeleteCustomer}
+              onToggleVip={handleToggleVip}
               onSendWhatsApp={handleOpenWhatsApp}
               searchQuery={searchQuery}
             />
           )}
 
           {activeTab === 'suppliers' && (
-            <Suppliers suppliers={suppliers} />
+            <Suppliers
+              suppliers={suppliers}
+              onAddSupplier={() => { setEditingSupplier(null); setIsSupplierModalOpen(true); }}
+              onEditSupplier={(sup) => { setEditingSupplier(sup); setIsSupplierModalOpen(true); }}
+              onDeleteSupplier={handleDeleteSupplier}
+            />
           )}
 
           {activeTab === 'reports' && (
@@ -310,6 +479,8 @@ export function App() {
               orders={orders}
               customers={customers}
               suppliers={suppliers}
+              storeSettings={storeSettings}
+              onSaveStoreSettings={handleSaveStoreSettings}
               onResetDemoData={handleResetDemoData}
               onImportData={handleImportData}
             />
@@ -323,6 +494,29 @@ export function App() {
         onClose={() => setIsProductModalOpen(false)}
         onSave={handleSaveProduct}
         initialProduct={editingProduct}
+      />
+
+      <CustomerModal
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        onSave={handleSaveCustomer}
+        initialCustomer={editingCustomer}
+      />
+
+      <SupplierModal
+        isOpen={isSupplierModalOpen}
+        onClose={() => setIsSupplierModalOpen(false)}
+        onSave={handleSaveSupplier}
+        initialSupplier={editingSupplier}
+      />
+
+      <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        onSave={handleSaveOrder}
+        initialOrder={editingOrder}
+        products={products}
+        customers={customers}
       />
 
       <OrderDetailModal
